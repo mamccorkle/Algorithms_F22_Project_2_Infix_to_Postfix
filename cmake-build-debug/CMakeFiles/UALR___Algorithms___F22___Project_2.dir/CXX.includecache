@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/decyple/Library/Mobile Documents/com~apple~CloudDocs/Code/C++/UALR - Algorithms - F22 - Project 2/main.cpp
+iostream
+-
+string
+-
+stack
+-
+

@@ -26,87 +26,116 @@
 #include <iostream>
 #include <string>
 #include <stack>
-using namespace std;
+#include <iomanip>
+
+#define ALIGN  std::setw(35) << std::left
+
+int precedenceLevel(char o)
+{
+    switch( o )
+    {
+        case '*':
+        case '/':
+            return 2;
+        case '+':
+        case '-':
+            return 1;
+        default:
+            return 9;
+    }
+}
 
 // you can type an arithmetic expression with no, one or more than one spaces
 // between each operator and operand
 // If no spaces is given between each operator and operand, this function will add
 // spaces to them
-string InfixToPostfix(char* str)
+std::string InfixToPostfix(char* str)
 {
-    stack<char> operatorStack;
-    string returnExpression{ "" };
+    std::stack<char> operatorStack;
+    std::string returnExpression;
 
     int i{ 0 };
     while(str[i] != '\0')
     {
-        //std::cout << str[i] << ' ';
 
-        if( isdigit(str[i]) )
-        {
-            //std::cout << "digit ";
+        if( isdigit(str[i]) || isalpha(str[i]) )
+        {   // Add number or alpha to end of postfix expression
             returnExpression += str[i];
+            returnExpression += ' ';
         }
-        else if( isalpha(str[i]) )
-        {   // Add number to end of postfix expression
-            //std::cout << "alpha ";
-            returnExpression += str[i];
-        }
-        else
+        else if(str[i] != ' ')
         {
-            // if the token is a '('
-            if(str[i] == '(')
+            switch (str[i])
             {
-                // push onto stack
-                //std::cout << '(' << ' ';
-                returnExpression += str[i];
-                operatorStack.push(str[i]);
-            }
+                case '(':
+                    operatorStack.push(str[i]);
+                    break;
+                case ')':
+                    // Loop till we find the beginning parentheses:
+                    while(operatorStack.top() != '(')
+                    {
+                        returnExpression += operatorStack.top();
+                        returnExpression += ' ';
+                        operatorStack.pop();
+                    }
+                    if(operatorStack.top() == '(')
+                        operatorStack.pop();
+                    break;
+                case '*':   // Fall-through by design
+                case '/':   //          |
+                case '+':   //          |
+                case '-':   //          v
+                    if(!operatorStack.empty())
+                    {
+                        //
+                        if (precedenceLevel(operatorStack.top()) < precedenceLevel(str[i]))
+                            operatorStack.push(str[i]);
+                        else if(operatorStack.top() == '(')
+                            operatorStack.push(str[i]);
+                        else if (precedenceLevel(operatorStack.top()) == precedenceLevel(str[i]))
+                        {
+                            returnExpression += str[i];
+                            returnExpression += ' ';
+                        }
+                        else
+                        {
+                            returnExpression += operatorStack.top();
+                            returnExpression += ' ';
+                            operatorStack.pop();
 
-            // if the token is a ')'
-            if(str[i] == ')')
-            {   // push onto stack
-                //std::cout << ')' << ' ';
-                returnExpression += str[i];
-                operatorStack.push(str[i]);
-            }
+                            if (precedenceLevel(operatorStack.top()) == precedenceLevel(str[i]) ||
+                                precedenceLevel(operatorStack.top()) < precedenceLevel(str[i]))
+                            {
+                                returnExpression += operatorStack.top();
+                                returnExpression += ' ';
+                                operatorStack.pop();
+                            }
 
-            // if the token is a '+'
-            if(str[i] == '+')
-            {   // push onto stack
-                //std::cout << '+' << ' ';
-                returnExpression += str[i];
-                operatorStack.push(str[i]);
-            }
-
-            // if the token is a '-'
-            if(str[i] == '-')
-            {   // push onto stack
-                //std::cout << '-' << ' ';
-                returnExpression += str[i];
-                operatorStack.push(str[i]);
-            }
-
-            // if the token is a '*'
-            if(str[i] == '*')
-            {   // push onto stack
-                //std::cout << '*' << ' ';
-                returnExpression += str[i];
-                operatorStack.push(str[i]);
-            }
-
-            // if the token is a '/'
-            if(str[i] == '/')
-            {   // push onto stack
-                //std::cout << '/' << ' ';
-                returnExpression += str[i];
-                operatorStack.push(str[i]);
+                            operatorStack.push(str[i]);
+                        }
+                    }
+                    else
+                        operatorStack.push(str[i]);
+                    break;
+                default:
+                    break;
             }
         }
 
         i++;
     }
-    std::cout << '\n';
+
+    // Empty the remainder of the stack:
+    while(!operatorStack.empty())
+    {
+        returnExpression += operatorStack.top();
+        returnExpression += ' ';
+        operatorStack.pop();
+    }
+
+    // Remove the last space from the string:
+    if(returnExpression[returnExpression.size() - 1] == ' ')
+        returnExpression.pop_back();
 
     return returnExpression;
 }
@@ -138,9 +167,40 @@ char* AddDelimitersToStr(char* str)
     }
     adjustedStr[newInx] = '\0';
 
-    //cout << "string with delimteres: " << adjustedStr << endl;
-    // system("PAUSE");
+    std::cout << "String with delimiters: " << adjustedStr << std::endl;
+    //system("PAUSE");
     return adjustedStr;
+}
+
+void printExample()
+{
+    std::cout << '\n';
+
+    std::cout << ALIGN << "1+2" << " == " << ALIGN << "1 2 +" << ": ";
+    InfixToPostfix("1+2") == "1 2 +" ? std::cout << "Pass\n" : std::cout << "*** FAIL ***\n";
+
+    std::cout << ALIGN << "1 + (2)" << " == " << ALIGN << "1 2 +" << ": ";
+    InfixToPostfix("1 + (2)") == "1 2 +" ? std::cout << "Pass\n" : std::cout << "*** FAIL ***\n";
+
+    std::cout << ALIGN << "(1)-(2)" << " == " << ALIGN << "1 2 -" << ": ";
+    InfixToPostfix("(1)-(2)") == "1 2 -" ? std::cout << "Pass\n" : std::cout << "*** FAIL ***\n";
+
+    std::cout << ALIGN << "3 + (4/2) * (5 * 6)" << " == " << ALIGN << "3 4 2 / 5 6 * * +" << ": ";
+    InfixToPostfix("3 + (4/2) * (5 * 6)") == "3 4 2 / 5 6 * * +" ? std::cout << "Pass\n" : std::cout << "*** FAIL ***\n";
+
+    std::cout << ALIGN << "((1+2))" << " == " << ALIGN << "1 2 +" << ": ";
+    InfixToPostfix("((1+2))") == "1 2 +" ? std::cout << "Pass\n" : std::cout << "*** FAIL ***\n";
+
+    std::cout << ALIGN << "(1 * (4 / 2))" << " == " << ALIGN << "1 4 2 / *" << ": ";
+    InfixToPostfix("(1 * (4 / 2))") == "1 4 2 / *" ? std::cout << "Pass\n" : std::cout << "*** FAIL ***\n";
+
+    std::cout << ALIGN << "A+B*C+(D*E+F)*G" << " == " << ALIGN << "A B C * + D E * F + G * +" << ": ";
+    InfixToPostfix("A+B*C+(D*E+F)*G") == "A B C * + D E * F + G * +" ? std::cout << "Pass\n" : std::cout << "*** FAIL ***\n";
+
+    std::cout << ALIGN << "A+B*(C/D-E)*(F+G*H)-I" << " == " << ALIGN << "A B C D / E - * F G H * + * + I -" << ": ";
+    InfixToPostfix("A+B*(C/D-E)*(F+G*H)-I") == "A B C D / E - * F G H * + * + I -" ? std::cout << "Pass\n" : std::cout << "*** FAIL ***\n";
+
+    std::cout << '\n';
 }
 
 int main()
@@ -148,14 +208,16 @@ int main()
     // input arithmetic expression should be less than 79 characters
     char* str = new char[80];
 
+    printExample();
+
     // Type control-c to exit the loop:
     while (1)
     {
         // you can assume legal arithemic expressions only
-        cout << "Enter an arithmetic equation..." << endl;
-        cin.getline(str, 80);
+        std::cout << "Enter an arithmetic equation..." << std::endl;
+        std::cin.getline(str, 80);
         str = AddDelimitersToStr(str);
-        cout << InfixToPostfix(str) << endl;
+        std::cout << InfixToPostfix(str) << std::endl;
     }
 
     return 0;

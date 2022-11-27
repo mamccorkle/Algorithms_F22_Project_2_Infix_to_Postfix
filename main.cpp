@@ -40,8 +40,8 @@ int precedenceLevel(char o)
         case '+':
         case '-':
             return 1;
-        default:
-            return 9;
+//        default:
+//            return 9;
     }
 }
 
@@ -57,40 +57,51 @@ std::string InfixToPostfix(char* str)
     int i{ 0 };
     while(str[i] != '\0')
     {
-
         if( isdigit(str[i]) || isalpha(str[i]) )
-        {   // Add number or alpha to end of postfix expression
+        {   // Add number or alpha characters to the end of the postfix expression:
             returnExpression += str[i];
             returnExpression += ' ';
         }
         else if(str[i] != ' ')
-        {
+        {   // If the character is not alphanumeric or a space we proceed:
             switch (str[i])
             {
                 case '(':
                     operatorStack.push(str[i]);
                     break;
                 case ')':
-                    // Loop till we find the beginning parentheses:
+                    // Loop till we find the beginning parentheses adding each stack element to the output expression:
                     while(operatorStack.top() != '(')
                     {
                         returnExpression += operatorStack.top();
                         returnExpression += ' ';
                         operatorStack.pop();
                     }
+
+                    // Remove the remaining beginning parenthesis:
                     if(operatorStack.top() == '(')
                         operatorStack.pop();
+
                     break;
                 case '*':   // Fall-through by design
                 case '/':   //          |
                 case '+':   //          |
                 case '-':   //          v
+                    // TODO: FILL IN NOTES HERE...
+
+                    // Check if the stack is empty, if it is, add to the stack:
                     if(!operatorStack.empty())
                     {
+                        // Check the precedence level of the top element on the stack and compare to the input character
+                        // If the stacks top element is of lesser precedence, then push the character onto the stack.
                         //
+//                        if (precedenceLevel(operatorStack.top()) < precedenceLevel(str[i]) || operatorStack.top() == '(')
+//                            operatorStack.push(str[i]);
+//                        else if(operatorStack.top() == '(')
+//                            operatorStack.push(str[i]);
                         if (precedenceLevel(operatorStack.top()) < precedenceLevel(str[i]))
                             operatorStack.push(str[i]);
-                        else if(operatorStack.top() == '(')
+                        else if(operatorStack.top() == '(')    // This is here because the parenthesis has no precedence
                             operatorStack.push(str[i]);
                         else if (precedenceLevel(operatorStack.top()) == precedenceLevel(str[i]))
                         {
@@ -167,7 +178,7 @@ char* AddDelimitersToStr(char* str)
     }
     adjustedStr[newInx] = '\0';
 
-    std::cout << "String with delimiters: " << adjustedStr << std::endl;
+    //std::cout << "String with delimiters: " << adjustedStr << std::endl;
     //system("PAUSE");
     return adjustedStr;
 }
@@ -199,6 +210,9 @@ void printExample()
 
     std::cout << ALIGN << "A+B*(C/D-E)*(F+G*H)-I" << " == " << ALIGN << "A B C D / E - * F G H * + * + I -" << ": ";
     InfixToPostfix("A+B*(C/D-E)*(F+G*H)-I") == "A B C D / E - * F G H * + * + I -" ? std::cout << "Pass\n" : std::cout << "*** FAIL ***\n";
+
+    std::cout << ALIGN << "3+(4/2)*(5*6)" << " == " << ALIGN << "3 4 2 / 5 6 * * +" << ": ";
+    InfixToPostfix("3+(4/2)*(5*6)") == "3 4 2 / 5 6 * * +" ? std::cout << "Pass\n" : std::cout << "*** FAIL ***\n";
 
     std::cout << '\n';
 }

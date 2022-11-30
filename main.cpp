@@ -12,7 +12,7 @@
 // separated by at least one spaces
 
 // Date Written: 20221112
-// Date Revised: 202211??
+// Date Revised: 20221130
 
 // Based on Code Provided by Dr. Chia-Chu Chiang
 
@@ -40,8 +40,6 @@ int precedenceLevel(char o)
         case '+':
         case '-':
             return 1;
-//        default:
-//            return 9;
     }
 }
 
@@ -87,27 +85,23 @@ std::string InfixToPostfix(char* str)
                 case '/':   //          |
                 case '+':   //          |
                 case '-':   //          v
-                    // TODO: FILL IN NOTES HERE...
-
-                    // Check if the stack is empty, if it is, add to the stack:
+                    // Check if the stack is empty:
                     if(!operatorStack.empty())
                     {
                         // Check the precedence level of the top element on the stack and compare to the input character
                         // If the stacks top element is of lesser precedence, then push the character onto the stack.
-                        //
-//                        if (precedenceLevel(operatorStack.top()) < precedenceLevel(str[i]) || operatorStack.top() == '(')
-//                            operatorStack.push(str[i]);
-//                        else if(operatorStack.top() == '(')
-//                            operatorStack.push(str[i]);
                         if (precedenceLevel(operatorStack.top()) < precedenceLevel(str[i]))
                             operatorStack.push(str[i]);
-                        else if(operatorStack.top() == '(')    // This is here because the parenthesis has no precedence
+                        // Parenthesis has no precedence:
+                        else if(operatorStack.top() == '(')
                             operatorStack.push(str[i]);
+                        // Can't have the same precedence. So, move the element to postfix expression:
                         else if (precedenceLevel(operatorStack.top()) == precedenceLevel(str[i]))
                         {
                             returnExpression += str[i];
                             returnExpression += ' ';
                         }
+                        // Precedence is out of the way. Now, we need to filter based on multiple operators in the stack:
                         else
                         {
                             returnExpression += operatorStack.top();
@@ -125,6 +119,7 @@ std::string InfixToPostfix(char* str)
                             operatorStack.push(str[i]);
                         }
                     }
+                    // Stack is empty. So, add to the stack:
                     else
                         operatorStack.push(str[i]);
                     break;
